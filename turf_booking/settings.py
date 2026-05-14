@@ -48,24 +48,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'turf_booking.wsgi.application'
 
 # ── MySQL (XAMPP) ──────────────────────────────────────────
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'turf_booking_db',
-        'USER': 'root',
-        'PASSWORD': '',  # yaha password daalo agar hai
-        'HOST': '127.0.0.1',
-        'PORT': '4306',
-    }
-}
+
 
 # ── Fallback SQLite (comment DATABASES above, uncomment this) ──
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
