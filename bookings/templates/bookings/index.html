@@ -569,169 +569,167 @@
 </div>
 {% endblock %} {% block extra_js %}
 <script>
-    const NIGHT_SLOTS = ['18:00-19:00','19:00-20:00','20:00-21:00','21:00-22:00','22:00-23:00','23:00-00:00'];
-    let selectedSlot = null;
+      const NIGHT_SLOTS = ['18:00-19:00','19:00-20:00','20:00-21:00','21:00-22:00','22:00-23:00','23:00-00:00'];
+      let selectedSlot = null;
 
-    // Page load pe aaj ke booked slots mark karo
-    const bookedToday = {{ booked_slots_today|safe }};
-    bookedToday.forEach(function(slot) {
-        const btn = document.querySelector('.slot-btn[data-slot="' + slot + '"]');
-        if (btn) btn.classList.add('booked');
-    });
-  // past slots hide karo
-  // Past slots hide karo
-  const now = new Date();
-  const currentHour = now.getHours();
-  const todayStr = now.toISOString().split('T')[0];
+      // Page load pe aaj ke booked slots mark karo
+      const bookedToday = {{ booked_slots_today|safe }};
+      bookedToday.forEach(function(slot) {
+          const btn = document.querySelector('.slot-btn[data-slot="' + slot + '"]');
+          if (btn) btn.classList.add('booked');
+      });
+    // past slots hide karo
+    // Past slots hide karo
+    const now = new Date();
+    const currentHour = now.getHours();
+    const todayStr = now.toISOString().split('T')[0];
 
-  function markPastSlots(selectedDateStr) {
+    function markPastSlots(selectedDateStr) {
       document.querySelectorAll('.slot-btn').forEach(function(btn) {
           const slot = btn.getAttribute('data-slot');
           const slotHour = parseInt(slot.split(':')[0]);
           if (selectedDateStr === todayStr && slotHour <= currentHour) {
-              btn.classList.add('booked');
-              btn.style.background = '#e0e0e0';
-              btn.style.color = '#999';
-              btn.style.borderColor = '#ccc';
-              btn.title = 'Yeh slot ab available nahi hai';
+              btn.style.display = 'none';
+          } else {
+              btn.style.display = '';
           }
       });
   }
 
-  markPastSlots(todayStr);
-    // Slot select karo
-    function selectSlot(el) {
-        if (el.classList.contains('booked')) {
-            alert('Yeh slot already booked hai! Koi aur slot choose karo.');
-            return;
-        }
+    markPastSlots(todayStr);
+      // Slot select karo
+      function selectSlot(el) {
+          if (el.classList.contains('booked')) {
+              alert('Yeh slot already booked hai! Koi aur slot choose karo.');
+              return;
+          }
 
-        // Pehle wala selected hata do
-        document.querySelectorAll('.slot-btn').forEach(function(b) {
-            b.classList.remove('selected');
-            b.style.background = '';
-            b.style.color = '';
-        });
+          // Pehle wala selected hata do
+          document.querySelectorAll('.slot-btn').forEach(function(b) {
+              b.classList.remove('selected');
+              b.style.background = '';
+              b.style.color = '';
+          });
 
-        // Naya select karo
-        el.classList.add('selected');
-        el.style.background = '#1a7a3a';
-        el.style.color = '#ffffff';
-        el.style.borderColor = '#0f4f25';
+          // Naya select karo
+          el.classList.add('selected');
+          el.style.background = '#1a7a3a';
+          el.style.color = '#ffffff';
+          el.style.borderColor = '#0f4f25';
 
-        selectedSlot = el.getAttribute('data-slot');
-        document.getElementById('slot-select').value = selectedSlot;
+          selectedSlot = el.getAttribute('data-slot');
+          document.getElementById('slot-select').value = selectedSlot;
 
-        // Fee box dikhao
-        const dateVal = document.getElementById('id_booking_date').value;
-        if (dateVal) {
-            fetchFee(dateVal, selectedSlot);
-        } else {
-            // Date nahi select ki to bhi fee box dikhao basic info ke saath
-            const isNight = NIGHT_SLOTS.includes(selectedSlot);
-            document.getElementById('periodIcon').textContent = isNight ? '🌙' : '☀️';
-            document.getElementById('selectedSlotLabel').textContent = el.innerText.replace('\n', ' – ');
-            document.getElementById('feeAmount').textContent = '?';
-            document.getElementById('periodBadge').textContent = '(Select date to see fee)';
-            document.getElementById('feeInfoBox').style.display = 'block';
-        }
+          // Fee box dikhao
+          const dateVal = document.getElementById('id_booking_date').value;
+          if (dateVal) {
+              fetchFee(dateVal, selectedSlot);
+          } else {
+              // Date nahi select ki to bhi fee box dikhao basic info ke saath
+              const isNight = NIGHT_SLOTS.includes(selectedSlot);
+              document.getElementById('periodIcon').textContent = isNight ? '🌙' : '☀️';
+              document.getElementById('selectedSlotLabel').textContent = el.innerText.replace('\n', ' – ');
+              document.getElementById('feeAmount').textContent = '?';
+              document.getElementById('periodBadge').textContent = '(Select date to see fee)';
+              document.getElementById('feeInfoBox').style.display = 'block';
+          }
 
-        // Submit button enable karo
-        checkSubmit();
-    }
+          // Submit button enable karo
+          checkSubmit();
+      }
 
-    // Fee fetch karo API se
-    function fetchFee(dateStr, slot) {
-        fetch('/api/slot-fee/?date=' + dateStr + '&slot=' + slot)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                const slotEl = document.querySelector('.slot-btn[data-slot="' + slot + '"]');
-                const label = slotEl ? slotEl.innerText.replace('\n', ' – ') : slot;
-                const isNight = NIGHT_SLOTS.includes(slot);
+      // Fee fetch karo API se
+      function fetchFee(dateStr, slot) {
+          fetch('/api/slot-fee/?date=' + dateStr + '&slot=' + slot)
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                  const slotEl = document.querySelector('.slot-btn[data-slot="' + slot + '"]');
+                  const label = slotEl ? slotEl.innerText.replace('\n', ' – ') : slot;
+                  const isNight = NIGHT_SLOTS.includes(slot);
 
-                document.getElementById('feeAmount').textContent = data.fee;
-                document.getElementById('selectedSlotLabel').textContent = label;
-                document.getElementById('periodIcon').textContent = isNight ? '🌙' : '☀️';
-                document.getElementById('periodBadge').textContent =
-                    '(' + (data.day_type === 'weekend' ? 'Weekend' : 'Weekday') +
-                    ' ' + (isNight ? 'Night' : 'Day') + ')';
-                document.getElementById('feeInfoBox').style.display = 'block';
-            })
-            .catch(function() {
-                document.getElementById('feeInfoBox').style.display = 'block';
-            });
-    }
+                  document.getElementById('feeAmount').textContent = data.fee;
+                  document.getElementById('selectedSlotLabel').textContent = label;
+                  document.getElementById('periodIcon').textContent = isNight ? '🌙' : '☀️';
+                  document.getElementById('periodBadge').textContent =
+                      '(' + (data.day_type === 'weekend' ? 'Weekend' : 'Weekday') +
+                      ' ' + (isNight ? 'Night' : 'Day') + ')';
+                  document.getElementById('feeInfoBox').style.display = 'block';
+              })
+              .catch(function() {
+                  document.getElementById('feeInfoBox').style.display = 'block';
+              });
+      }
 
-    // Date change hone pe booked slots refresh karo
-    function fetchBookedSlots(dateStr) {
-        fetch('/api/booked-slots/?date=' + dateStr)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                // Pehle sab reset karo
-                document.querySelectorAll('.slot-btn').forEach(function(btn) {
-                    btn.classList.remove('booked');
-                    // Jo selected hai usko selected rakhna
-                    if (btn.getAttribute('data-slot') === selectedSlot) {
-                        btn.classList.add('selected');
-                        btn.style.background = '#1a7a3a';
-                        btn.style.color = '#ffffff';
-                    }
-                });
+      // Date change hone pe booked slots refresh karo
+      function fetchBookedSlots(dateStr) {
+          fetch('/api/booked-slots/?date=' + dateStr)
+              .then(function(r) { return r.json(); })
+              .then(function(data) {
+                  // Pehle sab reset karo
+                  document.querySelectorAll('.slot-btn').forEach(function(btn) {
+                      btn.classList.remove('booked');
+                      // Jo selected hai usko selected rakhna
+                      if (btn.getAttribute('data-slot') === selectedSlot) {
+                          btn.classList.add('selected');
+                          btn.style.background = '#1a7a3a';
+                          btn.style.color = '#ffffff';
+                      }
+                  });
 
-                // Booked slots mark karo
-                data.booked_slots.forEach(function(slot) {
-                    const btn = document.querySelector('.slot-btn[data-slot="' + slot + '"]');
-                    if (btn) {
-                        btn.classList.add('booked');
-                        btn.classList.remove('selected');
-                        btn.style.background = '';
-                        btn.style.color = '';
-                        // Agar selected slot booked ho gaya to reset
-                        if (slot === selectedSlot) {
-                            selectedSlot = null;
-                            document.getElementById('slot-select').value = '';
-                            document.getElementById('feeInfoBox').style.display = 'none';
-                        }
-                    }
-                });
-                markPastSlots(dateStr);
-                checkSubmit();
-            });
-    }
+                  // Booked slots mark karo
+                  data.booked_slots.forEach(function(slot) {
+                      const btn = document.querySelector('.slot-btn[data-slot="' + slot + '"]');
+                      if (btn) {
+                          btn.classList.add('booked');
+                          btn.classList.remove('selected');
+                          btn.style.background = '';
+                          btn.style.color = '';
+                          // Agar selected slot booked ho gaya to reset
+                          if (slot === selectedSlot) {
+                              selectedSlot = null;
+                              document.getElementById('slot-select').value = '';
+                              document.getElementById('feeInfoBox').style.display = 'none';
+                          }
+                      }
+                  });
+                  markPastSlots(dateStr);
+                  checkSubmit();
+              });
+      }
 
-    // Date input change
-    document.getElementById('id_booking_date').addEventListener('change', function() {
-        const d = new Date(this.value);
-        const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
-        document.getElementById('dayTypeDisplay').value =
-            isWeekend ? '📅 Weekend (Sat / Sun)' : '📅 Weekday (Mon – Fri)';
-        fetchBookedSlots(this.value);
-        if (selectedSlot) {
-            fetchFee(this.value, selectedSlot);
-        }
-    });
+      // Date input change
+      document.getElementById('id_booking_date').addEventListener('change', function() {
+          const d = new Date(this.value);
+          const isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+          document.getElementById('dayTypeDisplay').value =
+              isWeekend ? '📅 Weekend (Sat / Sun)' : '📅 Weekday (Mon – Fri)';
+          fetchBookedSlots(this.value);
+          if (selectedSlot) {
+              fetchFee(this.value, selectedSlot);
+          }
+      });
 
-    // Submit button check
-    function checkSubmit() {
-        const dateVal = document.getElementById('id_booking_date').value;
-        const btn = document.getElementById('submitBtn');
-        if (dateVal && selectedSlot) {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-        } else {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
-        }
-    }
+      // Submit button check
+      function checkSubmit() {
+          const dateVal = document.getElementById('id_booking_date').value;
+          const btn = document.getElementById('submitBtn');
+          if (dateVal && selectedSlot) {
+              btn.disabled = false;
+              btn.style.opacity = '1';
+              btn.style.cursor = 'pointer';
+          } else {
+              btn.disabled = true;
+              btn.style.opacity = '0.5';
+              btn.style.cursor = 'not-allowed';
+          }
+      }
 
-    // form-control class inputs ko
-    document.querySelectorAll('input:not([type=submit]):not([type=hidden]), textarea')
-        .forEach(function(el) { el.classList.add('form-control'); });
+      // form-control class inputs ko
+      document.querySelectorAll('input:not([type=submit]):not([type=hidden]), textarea')
+          .forEach(function(el) { el.classList.add('form-control'); });
 
-    // Submit button initially disabled dikhao
-    document.getElementById('submitBtn').style.opacity = '0.5';
-    document.getElementById('submitBtn').style.cursor = 'not-allowed';
+      // Submit button initially disabled dikhao
+      document.getElementById('submitBtn').style.opacity = '0.5';
+      document.getElementById('submitBtn').style.cursor = 'not-allowed';
 </script>
 {% endblock %}
