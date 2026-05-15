@@ -408,4 +408,226 @@
     window.location.href = '/export-month/?month='+m+'&year='+y;
   });
 </script>
+<!-- ANALYTICS SECTION -->
+<div class="container" style="padding-bottom: 2rem">
+  <h2
+    style="
+      font-family: &quot;Barlow Condensed&quot;, sans-serif;
+      color: var(--green-dark);
+      margin-bottom: 1rem;
+    "
+  >
+    📊 Analytics — {{ current_month }}
+  </h2>
+
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    "
+  >
+    <!-- Day vs Night -->
+    <div class="card">
+      <div class="card-header"><h3>☀️ Day vs 🌙 Night</h3></div>
+      <div class="card-body">
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--gray-500);
+          "
+        >
+          <span style="display: flex; align-items: center; gap: 4px"
+            ><span
+              style="
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #25a34f;
+              "
+            ></span
+            >Day</span
+          >
+          <span style="display: flex; align-items: center; gap: 4px"
+            ><span
+              style="
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+                background: #1a2033;
+              "
+            ></span
+            >Night</span
+          >
+        </div>
+        <div style="position: relative; height: 200px">
+          <canvas
+            id="dayNightChart"
+            role="img"
+            aria-label="Donut chart day vs night bookings"
+            >Day vs Night bookings</canvas
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily Trend -->
+    <div class="card">
+      <div class="card-header"><h3>📈 Daily Booking Trend</h3></div>
+      <div class="card-body">
+        <div style="position: relative; height: 200px">
+          <canvas
+            id="trendChart"
+            role="img"
+            aria-label="Line chart daily booking trend"
+            >Daily trend</canvas
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Peak Hours -->
+  <div class="card" style="margin-bottom: 1.5rem">
+    <div class="card-header"><h3>⏰ Peak Hours — All 24 Slots</h3></div>
+    <div class="card-body">
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          gap: 16px;
+          margin-bottom: 8px;
+          font-size: 12px;
+          color: var(--gray-500);
+        "
+      >
+        <span style="display: flex; align-items: center; gap: 4px"
+          ><span
+            style="
+              width: 10px;
+              height: 10px;
+              border-radius: 2px;
+              background: #1a7a3a;
+            "
+          ></span
+          >Day slot</span
+        >
+        <span style="display: flex; align-items: center; gap: 4px"
+          ><span
+            style="
+              width: 10px;
+              height: 10px;
+              border-radius: 2px;
+              background: #1a2033;
+            "
+          ></span
+          >Night slot</span
+        >
+      </div>
+      <div style="position: relative; height: 220px">
+        <canvas
+          id="peakChart"
+          role="img"
+          aria-label="Bar chart 24 hour peak slots"
+          >24 hour peak data</canvas
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  var analyticsData = {{ bookings_json|safe }};
+
+  // Peak Hours
+  var allSlotKeys = ['00:00-01:00','01:00-02:00','02:00-03:00','03:00-04:00','04:00-05:00','05:00-06:00','06:00-07:00','07:00-08:00','08:00-09:00','09:00-10:00','10:00-11:00','11:00-12:00','12:00-13:00','13:00-14:00','14:00-15:00','15:00-16:00','16:00-17:00','17:00-18:00','18:00-19:00','19:00-20:00','20:00-21:00','21:00-22:00','22:00-23:00','23:00-00:00'];
+  var labels24 = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
+  var nightSlots = ['18:00-19:00','19:00-20:00','20:00-21:00','21:00-22:00','22:00-23:00','23:00-00:00'];
+
+  var slotCounts = {};
+  analyticsData.forEach(function(b){
+    slotCounts[b.slot] = (slotCounts[b.slot] || 0) + 1;
+  });
+  var slotValues = allSlotKeys.map(function(k){ return slotCounts[k] || 0; });
+  var slotColors = allSlotKeys.map(function(k){ return nightSlots.indexOf(k) !== -1 ? '#1a2033' : '#1a7a3a'; });
+
+  new Chart(document.getElementById('peakChart'), {
+    type: 'bar',
+    data: {
+      labels: labels24,
+      datasets: [{
+        data: slotValues,
+        backgroundColor: slotColors,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, color: '#888' }, grid: { color: 'rgba(0,0,0,0.05)' } },
+        x: { ticks: { autoSkip: false, maxRotation: 45, color: '#888', font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+
+  // Day vs Night
+  var dayCount = analyticsData.filter(function(b){ return b.time_period === 'Day'; }).length;
+  var nightCount = analyticsData.filter(function(b){ return b.time_period === 'Night'; }).length;
+
+  new Chart(document.getElementById('dayNightChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Day', 'Night'],
+      datasets: [{
+        data: [dayCount, nightCount],
+        backgroundColor: ['#25a34f', '#1a2033'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      cutout: '65%'
+    }
+  });
+
+  // Daily Trend
+  var dateCounts = {};
+  analyticsData.forEach(function(b){
+    dateCounts[b.booking_date] = (dateCounts[b.booking_date] || 0) + 1;
+  });
+  var dateLabels = Object.keys(dateCounts).sort();
+  var dateValues = dateLabels.map(function(d){ return dateCounts[d]; });
+
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: dateLabels,
+      datasets: [{
+        data: dateValues,
+        borderColor: '#1a7a3a',
+        backgroundColor: 'rgba(26,122,58,0.08)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointBackgroundColor: '#1a7a3a',
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, color: '#888' }, grid: { color: 'rgba(0,0,0,0.05)' } },
+        x: { ticks: { color: '#888' }, grid: { display: false } }
+      }
+    }
+  });
+</script>
 {% endblock %}
