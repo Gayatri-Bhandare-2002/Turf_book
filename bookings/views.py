@@ -260,7 +260,11 @@ def export_month(request):
 # ================= ADMIN DASHBOARD =================
 @staff_member_required(login_url='/admin-login/')
 def admin_dashboard(request):
-    bookings = Booking.objects.all().order_by('-created_at')
+    today = date.today()
+    bookings = Booking.objects.filter(
+    booking_date__year=today.year,
+    booking_date__month=today.month
+).order_by('-created_at')
 
     today = date.today()
     current_month = today.strftime('%B %Y')
