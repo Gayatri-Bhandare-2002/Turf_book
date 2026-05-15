@@ -244,17 +244,52 @@ TurfZone{% endblock %} {% block extra_css %}
     </div>
    
     <div class="slot-timeline">
-  {% for slot in slot_status %}
-  <div class="slot-t {% if slot.is_mine %}my-slot{% elif slot.is_booked %}booked-other{% else %}available{% endif %} {% if slot.period == 'night' %}night-t{% else %}day-t{% endif %}">
-    <div style="font-size: 0.75rem; font-weight: 700;">
-      {{ slot.label }}
-    </div>
-    <div style="font-size: 0.7rem; margin-top: 0.2rem;">
-      {% if slot.is_mine %}✅ Your Slot{% elif slot.is_booked %}🔴 Booked{% else %}🟢 Free{% endif %}
-    </div>
+     <div style="padding: 1rem 1.5rem;">
+
+  <!-- DAY SLOTS -->
+  <div style="font-weight:700; color:#0f4f25; background:#e8f5ed; padding:0.5rem 0.8rem; border-left:4px solid #25a34f; border-radius:6px; margin-bottom:0.8rem;">
+    ☀️ DAY SLOTS — 12:00 AM to 6:00 PM
   </div>
-  {% endfor %}
+  <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:0.5rem; margin-bottom:1rem;">
+    {% for slot in slot_status %}
+      {% if slot.period == 'day' %}
+      <div style="border-radius:8px; padding:0.5rem 0.3rem; text-align:center; font-size:0.72rem; font-weight:600; border:2px solid;
+        {% if slot.is_mine %}background:#1a7a3a; color:#fff; border-color:#0f4f25;
+        {% elif slot.is_booked %}background:#f8d7da; color:#e63946; border-color:#f5c6cb;
+        {% else %}background:#f0faf4; color:#0f4f25; border-color:#25a34f;
+        {% endif %}">
+        {{ slot.label }}
+        <div style="font-size:0.65rem; margin-top:0.2rem;">
+          {% if slot.is_mine %}✅ Yours{% elif slot.is_booked %}🔴 Booked{% else %}🟢 Free{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- NIGHT SLOTS -->
+  <div style="font-weight:700; color:#a0c4ff; background:#1a2033; padding:0.5rem 0.8rem; border-left:4px solid #6c7ae0; border-radius:6px; margin-bottom:0.8rem;">
+    🌙 NIGHT SLOTS — 6:00 PM to 12:00 AM
+  </div>
+  <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:0.5rem;">
+    {% for slot in slot_status %}
+      {% if slot.period == 'night' %}
+    <div style="border-radius:8px; padding:0.5rem 0.3rem; text-align:center; font-size:0.72rem; font-weight:600; border:2px solid;
+      {% if slot.is_mine %}background:#1a7a3a; color:#fff; border-color:#0f4f25;
+      {% elif slot.is_booked %}background:#f8d7da; color:#e63946; border-color:#f5c6cb;
+      {% else %}background:#1a2033; color:#a0c4ff; border-color:#6c7ae0;
+      {% endif %}">
+      {{ slot.label }}
+        <div style="font-size:0.65rem; margin-top:0.2rem;">
+          {% if slot.is_mine %}✅ Yours{% elif slot.is_booked %}🔴 Booked{% else %}🟢 Free{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
 </div>
+    </div>
   </div>
 
     <div
