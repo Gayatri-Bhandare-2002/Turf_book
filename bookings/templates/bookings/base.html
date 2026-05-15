@@ -259,8 +259,13 @@
 
       <div class="navbar-links">
         <a href="/">Book Slot</a>
-
-        {% if user.is_staff %}
+        {% if user.is_authenticated and not user.is_staff %}
+        <a href="/my-bookings/">My Bookings</a>
+        <a href="/my-logout/">Logout</a>
+        {% elif not user.is_authenticated %}
+        <a href="/my-login/">Login</a>
+        <a href="/register/">Register</a>
+        {% endif %} {% if user.is_staff %}
         <a href="/admin-dashboard/">Dashboard</a>
         <a href="/admin-logout/">Logout</a>
         {% endif %}
