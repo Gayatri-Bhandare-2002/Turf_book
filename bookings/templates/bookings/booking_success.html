@@ -244,17 +244,17 @@ TurfZone{% endblock %} {% block extra_css %}
     </div>
    
     <div class="slot-timeline">
-      {% for slot in slot_status %}
-      <div
-        class="slot-t {% if slot.is_mine %}my-slot{% elif slot.is_booked %}booked-other{% else %}available{% endif %} {% if slot.period == 'night' %}night-t{% else %}day-t{% endif %}"
-      >
-       <div style="font-size: 0.75rem; font-weight: 700; margin-bottom: 0.2rem">
-  {{ slot.label }}
-</div>
-{% if slot.is_mine %}✅ YOUR SLOT{% elif slot.is_booked %}🔴 Booked{% else %}🟢 Free{% endif %}
-      </div>
-      {% endfor %}
+  {% for slot in slot_status %}
+  <div class="slot-t {% if slot.is_mine %}my-slot{% elif slot.is_booked %}booked-other{% else %}available{% endif %} {% if slot.period == 'night' %}night-t{% else %}day-t{% endif %}">
+    <div style="font-size: 0.75rem; font-weight: 700;">
+      {{ slot.label }}
     </div>
+    <div style="font-size: 0.7rem; margin-top: 0.2rem;">
+      {% if slot.is_mine %}✅ Your Slot{% elif slot.is_booked %}🔴 Booked{% else %}🟢 Free{% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
   </div>
 
     <div
