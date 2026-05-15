@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-turf-booking-secret-key-change-in-production'
 DEBUG = False
 ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
-
+import dj_database_url
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,10 +52,9 @@ WSGI_APPLICATION = 'turf_booking.wsgi.application'
 
 # ── Fallback SQLite (comment DATABASES above, uncomment this) ──
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(
+        'postgresql://turf_book_db_user:thqTJxsHk0cst220HGFB24sMvY1AEXgS@dpg-d83bs2t7vvec7399285g-a/turf_book_db'
+    )
 }
 
 LANGUAGE_CODE = 'en-us'
