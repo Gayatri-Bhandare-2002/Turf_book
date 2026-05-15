@@ -15,7 +15,9 @@ from django.db.models import Sum, Q
 from .models import Booking, Payment, SLOT_CHOICES, NIGHT_SLOTS, get_fee
 from .forms import BookingForm
 
-
+# new 
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
 # ================= HOME PAGE =================
 def index(request):
     if request.method == 'POST':
@@ -347,3 +349,59 @@ def admin_dashboard(request):
         context
     )
 
+# new 
+def user_register(request):
+    if request.user.is_authenticated:
+        return redirect('my_bookings')
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already registered!')
+            return render(request, 'bookings/register.html')
+        user = User.objects.create_user(username=email, email=email, password=password)
+        user.first_name = name
+        user.save()
+        login(request, user)
+        return redirect('my_bookings')
+    return render(request, 'bookings/register.html')
+
+# ================= USER LOGIN =================
+def user_login(request):
+    if request.user.is_authenticated:
+        return redirect('my_bookings')
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, username=email, password=password)
+        if user:
+            login(request, user)
+            return redirect('my_bookings')
+        messages.error(request, 'Invalid email or password!')
+    return render(request, 'bookings/user_login.html')
+
+# ================= USER LOGOUT =================
+def user_logout(request):
+    logout(request)
+    return redirect('user_login')
+
+# ================= MY BOOKINGS =================
+def my_bookings(request):
+    if not request.user.is_authenticated:
+        return redirect('user_login')
+    today = date.today()
+    upcoming = Booking.objects.filter(
+        user=request.user,
+        booking_date__gte=today,
+        status='confirmed'
+    ).order_by('booking_date')
+    past = Booking.objects.filter(
+        user=request.user,
+        booking_date__lt=today,
+        status='confirmed'
+    ).order_by('-booking_date')
+    return render(request, 'bookings/my_bookings.html', {
+        'upcoming': upcoming,
+        'past': past,
+    })
