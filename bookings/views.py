@@ -165,6 +165,7 @@ def booking_success(request, booking_id):
     return render(request, 'bookings/booking_success.html', {
         'booking': booking,
         'payment': payment_obj,
+        'slot_status': slot_status,
         'slot_status_json': json.dumps(slot_status),
     })
 
