@@ -14,6 +14,8 @@ from django.db.models import Sum, Q
 
 from .models import Booking, Payment, SLOT_CHOICES, NIGHT_SLOTS, get_fee
 from .forms import BookingForm
+# new 
+
 
 
 # ================= HOME PAGE =================
@@ -23,8 +25,6 @@ def index(request):
         if form.is_valid():
             booking = form.save(commit=False)
             booking.status = 'pending'
-            if request.user.is_authenticated:
-                booking.user = request.user
             booking.save()
             return redirect('payment', booking_id=booking.booking_id)
     else:
@@ -53,12 +53,16 @@ def get_slot_fee(request):
         return JsonResponse({'error': 'Missing params'}, status=400)
 
     try:
-        booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
+        booking_date = datetime.strptime(
+            booking_date_str,
+            '%Y-%m-%d'
+        ).date()
     except ValueError:
         return JsonResponse({'error': 'Invalid date'}, status=400)
 
     weekday = booking_date.weekday()
     day_type = 'weekend' if weekday >= 5 else 'weekday'
+
     fee = get_fee(day_type, slot)
 
     is_booked = Booking.objects.filter(
@@ -83,7 +87,10 @@ def get_booked_slots(request):
         return JsonResponse({'booked_slots': []})
 
     try:
-        booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
+        booking_date = datetime.strptime(
+            booking_date_str,
+            '%Y-%m-%d'
+        ).date()
     except ValueError:
         return JsonResponse({'booked_slots': []})
 
@@ -99,7 +106,11 @@ def get_booked_slots(request):
 
 # ================= PAYMENT =================
 def payment(request, booking_id):
-    booking = get_object_or_404(Booking, booking_id=booking_id, status='pending')
+    booking = get_object_or_404(
+        Booking,
+        booking_id=booking_id,
+        status='pending'
+    )
 
     if request.method == 'POST':
         Payment.objects.create(
@@ -110,9 +121,14 @@ def payment(request, booking_id):
             status='completed',
             paid_at=timezone.now(),
         )
+
         booking.status = 'confirmed'
         booking.save()
-        return redirect('booking_success', booking_id=booking.booking_id)
+
+        return redirect(
+            'booking_success',
+            booking_id=booking.booking_id
+        )
 
     return render(request, 'bookings/payment.html', {
         'booking': booking,
@@ -122,7 +138,12 @@ def payment(request, booking_id):
 
 # ================= SUCCESS PAGE =================
 def booking_success(request, booking_id):
-    booking = get_object_or_404(Booking, booking_id=booking_id, status='confirmed')
+    booking = get_object_or_404(
+        Booking,
+        booking_id=booking_id,
+        status='confirmed'
+    )
+
     payment_obj = getattr(booking, 'payment', None)
 
     booked_on_date = list(
@@ -162,9 +183,11 @@ def admin_login(request):
             username=request.POST.get('username'),
             password=request.POST.get('password')
         )
+
         if user and user.is_staff:
-            auth_login(request, user)
+            login(request, user)
             return redirect('admin_dashboard')
+
         messages.error(request, 'Invalid credentials or not an admin.')
 
     return render(request, 'bookings/admin_login.html')
@@ -172,28 +195,41 @@ def admin_login(request):
 
 # ================= ADMIN LOGOUT =================
 def admin_logout(request):
-    auth_logout(request)
+    logout(request)
     return redirect('admin_login')
 
 
 # ================= CSV EXPORT =================
 def make_csv_response(bookings_qs, filename):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    response['Content-Disposition'] = (
+        f'attachment; filename="{filename}"'
+    )
     response.write('\ufeff')
+
     writer = csv.writer(response)
+
     writer.writerow([
         'Booking ID', 'Name', 'Email', 'Phone',
         'Booking Date', 'Slot', 'Fee',
         'Payment Status', 'Booking Status'
     ])
+
     for b in bookings_qs:
         pay = getattr(b, 'payment', None)
+
         writer.writerow([
-            b.booking_id, b.name, b.email, b.phone,
-            b.booking_date, b.get_slot_display_label(),
-            b.fee, 'Paid' if pay else 'No Payment', b.status,
+            b.booking_id,
+            b.name,
+            b.email,
+            b.phone,
+            b.booking_date,
+            b.get_slot_display_label(),
+            b.fee,
+            'Paid' if pay else 'No Payment',
+            b.status,
         ])
+
     return response
 
 
@@ -201,14 +237,25 @@ def make_csv_response(bookings_qs, filename):
 @staff_member_required(login_url='/admin-login/')
 def export_month(request):
     today = date.today()
+
     m = int(request.GET.get('month', today.month))
     y = int(request.GET.get('year', today.year))
+
     month_start = date(y, m, 1)
-    month_end = date(y, m, calendar.monthrange(y, m)[1])
+    month_end = date(
+        y,
+        m,
+        calendar.monthrange(y, m)[1]
+    )
+
     bookings_qs = Booking.objects.filter(
         booking_date__range=[month_start, month_end]
     )
-    filename = f'Bookings_{month_start.strftime("%B_%Y")}.csv'
+
+    filename = (
+        f'Bookings_{month_start.strftime("%B_%Y")}.csv'
+    )
+
     return make_csv_response(bookings_qs, filename)
 
 
@@ -217,11 +264,13 @@ def export_month(request):
 def admin_dashboard(request):
     today = date.today()
     bookings = Booking.objects.filter(
-        booking_date__year=today.year,
-        booking_date__month=today.month
-    ).order_by('-created_at')
+    booking_date__year=today.year,
+    booking_date__month=today.month
+).order_by('-created_at')
 
+    today = date.today()
     current_month = today.strftime('%B %Y')
+
     total = bookings.count()
     confirmed = bookings.filter(status='confirmed').count()
     pending = bookings.filter(status='pending').count()
@@ -240,7 +289,8 @@ def admin_dashboard(request):
 
     bookings_list = []
     for b in bookings:
-        pay = getattr(b, 'payment', None)
+        payment = getattr(b, 'payment', None)
+
         bookings_list.append({
             'booking_id': b.booking_id,
             'name': b.name,
@@ -250,13 +300,25 @@ def admin_dashboard(request):
             'group_members': b.group_members,
             'booking_date': b.booking_date.strftime('%d-%m-%Y'),
             'slot': b.get_slot_display_label(),
-            'time_period': 'Night' if b.slot in NIGHT_SLOTS else 'Day',
+            'time_period': (
+                'Night' if b.slot in NIGHT_SLOTS else 'Day'
+            ),
             'fee': str(b.fee),
-            'payment_status': 'Paid' if pay else 'No Payment',
-            'pay_method': pay.payment_method.title() if pay else '-',
-            'txn_ref': pay.transaction_id if pay else '-',
-            'status': b.status,
-            'created_at': localtime(b.created_at).strftime('%d-%m-%Y %I:%M %p'),
+            'payment_status': (
+                'Paid' if payment else 'No Payment'
+            ),
+            'pay_method': (
+                payment.payment_method.title()
+                if payment else '-'
+            ),
+            'txn_ref': (
+                payment.transaction_id
+                if payment else '-'
+            ),
+           'status': b.status,
+'created_at': localtime(b.created_at).strftime(
+    '%d-%m-%Y %I:%M %p'
+),
         })
 
     months_list = []
@@ -281,65 +343,10 @@ def admin_dashboard(request):
         'date_filter': request.GET.get('date', ''),
     }
 
-    return render(request, 'bookings/admin_dashboard.html', context)
+    return render(
+        request,
+        'bookings/admin_dashboard.html',
+        context
+    )
 
-
-# ================= USER REGISTER =================
-def user_register(request):
-    if request.user.is_authenticated:
-        return redirect('my_bookings')
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        if User.objects.filter(email=email).exists():
-            messages.error(request, 'Email already registered!')
-            return render(request, 'bookings/register.html')
-        user = User.objects.create_user(username=email, email=email, password=password)
-        user.first_name = name
-        user.save()
-        auth_login(request, user)
-        return redirect('my_bookings')
-    return render(request, 'bookings/register.html')
-
-
-# ================= USER LOGIN =================
-def user_login(request):
-    if request.user.is_authenticated:
-        return redirect('my_bookings')
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        user = authenticate(request, username=email, password=password)
-        if user:
-            auth_login(request, user)
-            return redirect('my_bookings')
-        messages.error(request, 'Invalid email or password!')
-    return render(request, 'bookings/user_login.html')
-
-
-# ================= USER LOGOUT =================
-def user_logout(request):
-    auth_logout(request)
-    return redirect('user_login')
-
-
-# ================= MY BOOKINGS =================
-def my_bookings(request):
-    if not request.user.is_authenticated:
-        return redirect('user_login')
-    today = date.today()
-    upcoming = Booking.objects.filter(
-        user=request.user,
-        booking_date__gte=today,
-        status='confirmed'
-    ).order_by('booking_date')
-    past = Booking.objects.filter(
-        user=request.user,
-        booking_date__lt=today,
-        status='confirmed'
-    ).order_by('-booking_date')
-    return render(request, 'bookings/my_bookings.html', {
-        'upcoming': upcoming,
-        'past': past,
-    })
+# new 
