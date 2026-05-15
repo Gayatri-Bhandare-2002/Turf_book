@@ -213,10 +213,13 @@ def export_month(request):
 @staff_member_required(login_url='/admin-login/')
 def admin_dashboard(request):
     today = date.today()
+    selected_month = int(request.GET.get('analytics_month', today.month))
+    selected_year = int(request.GET.get('analytics_year', today.year))
+
     bookings = Booking.objects.filter(
-        booking_date__year=today.year,
-        booking_date__month=today.month
-    ).order_by('-created_at')
+    booking_date__year=selected_year,
+    booking_date__month=selected_month
+).order_by('-created_at')
 
     current_month = today.strftime('%B %Y')
     total = bookings.count()

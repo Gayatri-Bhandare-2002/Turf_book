@@ -418,6 +418,26 @@
     "
   >
     📊 Analytics — {{ current_month }}
+    <form
+      method="get"
+      style="
+        display: inline-flex;
+        gap: 0.7rem;
+        align-items: center;
+        margin-bottom: 1rem;
+      "
+    >
+      <select
+        name="analytics_month"
+        class="export-select"
+        style="background: #fff; border: 1.5px solid #ddd"
+      >
+        {% for m in months_list %}
+        <option value="{{ m.month }}">{{ m.label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Show Analytics</button>
+    </form>
   </h2>
 
   <div
