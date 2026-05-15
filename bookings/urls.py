@@ -11,5 +11,9 @@ urlpatterns = [
     path('export-month/',views.export_month,name='export_month'),
     path('api/slot-fee/',views.get_slot_fee, name='get_slot_fee'),
     path('api/booked-slots/', views.get_booked_slots,name='get_booked_slots'),
-  
+#   new 
+    path('register/', views.user_register, name='user_register'),
+    path('my-login/', views.user_login, name='user_login'),
+    path('my-logout/', views.user_logout, name='user_logout'),
+    path('my-bookings/', views.my_bookings, name='my_bookings'),
 ]
