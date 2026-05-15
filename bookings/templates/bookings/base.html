@@ -273,8 +273,106 @@
       {% endfor %}
     </div>
     {% endif %} {% block content %}{% endblock %}
-    <footer>
-      <p>© 2025 TurfZone. Bookings are non-refundable once confirmed.</p>
+    <footer
+      style="
+        background: var(--gray-900);
+        color: rgba(255, 255, 255, 0.7);
+        padding: 2rem 0;
+        margin-top: 4rem;
+      "
+    >
+      <div class="container">
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+          "
+        >
+          <!-- Address -->
+          <div>
+            <h4
+              style="
+                color: var(--yellow);
+                font-family: &quot;Barlow Condensed&quot;, sans-serif;
+                font-size: 1.1rem;
+                margin-bottom: 0.8rem;
+              "
+            >
+              📍 Location
+            </h4>
+            <p style="font-size: 0.88rem; line-height: 1.6">
+              Karale Club House - Green Yard<br />
+              Karale Club House, New Link Road, Behind Savedi Bus Stand,<br />
+              Savedi, Ahmednagar, Maharashtra 414003
+            </p>
+          </div>
+
+          <!-- Contact -->
+          <div>
+            <h4
+              style="
+                color: var(--yellow);
+                font-family: &quot;Barlow Condensed&quot;, sans-serif;
+                font-size: 1.1rem;
+                margin-bottom: 0.8rem;
+              "
+            >
+              📞 Contact
+            </h4>
+            <p style="font-size: 0.88rem; line-height: 1.6">
+              Phone: +919860702993<br />
+
+              Open: 24 Hours, 7 Days
+            </p>
+          </div>
+
+          <!-- Parking -->
+          <div>
+            <h4
+              style="
+                color: var(--yellow);
+                font-family: &quot;Barlow Condensed&quot;, sans-serif;
+                font-size: 1.1rem;
+                margin-bottom: 0.8rem;
+              "
+            >
+              🚗 Parking & Info
+            </h4>
+            <p style="font-size: 0.88rem; line-height: 1.6">
+              ✅ Free Parking Available<br />
+              ✅ 2-Wheeler & 4-Wheeler<br />
+              ✅ Safe & Secure Area
+            </p>
+          </div>
+        </div>
+
+        <!-- Google Maps -->
+        <div style="margin-bottom: 1.5rem">
+          <iframe
+            src="APNA_GOOGLE_MAPS_EMBED_URL_YAHAN_DAALO"
+            width="100%"
+            height="200"
+            style="border: 0; border-radius: 8px"
+            allowfullscreen=""
+            loading="lazy"
+          >
+          </iframe>
+        </div>
+
+        <p
+          style="
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+          "
+        >
+          © 2025 TurfZone. Bookings are non-refundable once confirmed.
+        </p>
+      </div>
     </footer>
     {% block extra_js %}{% endblock %}
   </body>
