@@ -217,11 +217,11 @@ def admin_dashboard(request):
     selected_year = int(request.GET.get('analytics_year', today.year))
 
     bookings = Booking.objects.filter(
-    booking_date__year=selected_year,
-    booking_date__month=selected_month
-).order_by('-created_at')
+        booking_date__year=selected_year,
+        booking_date__month=selected_month
+    ).order_by('-created_at')
 
-    current_month = today.strftime('%B %Y')
+    current_month = f"{calendar.month_name[selected_month]} {selected_year}"
     total = bookings.count()
     confirmed = bookings.filter(status='confirmed').count()
     pending = bookings.filter(status='pending').count()
@@ -277,6 +277,8 @@ def admin_dashboard(request):
         'today': today,
         'today_booked': json.dumps(today_booked),
         'current_month': current_month,
+        'selected_month': selected_month,
+        'selected_year': selected_year,
         'months_list': months_list,
         'search': request.GET.get('search', ''),
         'date_filter': request.GET.get('date', ''),
