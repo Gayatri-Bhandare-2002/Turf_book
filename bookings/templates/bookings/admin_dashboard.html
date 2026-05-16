@@ -267,8 +267,8 @@
   <div class="filter-bar">
     <form method="get" style="display: contents">
       <div class="form-group">
-        <label>Date</label
-        ><input
+        <label>Date</label>
+        <input
           type="date"
           name="date"
           class="form-control"
@@ -285,8 +285,8 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Search</label
-        ><input
+        <label>Search</label>
+        <input
           type="text"
           name="search"
           class="form-control"
@@ -341,7 +341,6 @@
 </div>
 
 <script>
-  // Today slots grid
   var bookedToday = {{ today_booked|safe }};
   var allSlots = [
     ['00:00-01:00','12AM-1AM','day'],['01:00-02:00','1AM-2AM','day'],
@@ -364,13 +363,10 @@
     grid.innerHTML += '<div class="'+cls+'">'+(taken?'Booked':'Available')+'<div style="font-size:.6rem;margin-top:.1rem">'+s[1]+'</div></div>';
   });
 
-  // Bookings table
   var bookings = {{ bookings_json|safe }};
   var tbody = document.getElementById('bookingTableBody');
   document.getElementById('bookingCount').textContent = bookings.length;
-  if(bookings.length === 0){
-    document.getElementById('noBookings').style.display = 'block';
-  }
+  if(bookings.length === 0){ document.getElementById('noBookings').style.display = 'block'; }
   bookings.forEach(function(b){
     var payBadge = b.payment_status==='Paid'
       ?'<span class="badge badge-confirmed">Paid</span>'
@@ -398,40 +394,44 @@
       '</tr>';
   });
 
-  // Export button
   document.getElementById('exportBtn').addEventListener('click', function(e){
     e.preventDefault();
     var val = document.getElementById('exportMonthSelect').value;
     var parts = val.split('-');
-    var m = parts[0];
-    var y = parts[1];
-    window.location.href = '/export-month/?month='+m+'&year='+y;
+    window.location.href = '/export-month/?month='+parts[0]+'&year='+parts[1];
   });
 </script>
+
 <!-- ANALYTICS SECTION -->
 <div class="container" style="padding-bottom: 2rem">
-  <h2
+  <div
     style="
-      font-family: &quot;Barlow Condensed&quot;, sans-serif;
-      color: var(--green-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
     "
   >
-    <!-- new  -->
+    <h2
+      style="
+        font-family: &quot;Barlow Condensed&quot;, sans-serif;
+        color: var(--green-dark);
+        margin: 0;
+      "
+    >
+      📊 Analytics — {{ current_month }}
+    </h2>
     <form
       method="get"
-      style="
-        display: inline-flex;
-        gap: 0.7rem;
-        align-items: center;
-        margin-bottom: 1rem;
-      "
+      style="display: inline-flex; gap: 0.7rem; align-items: center"
     >
       <input type="hidden" name="analytics_year" value="{{ selected_year }}" />
       <select
         name="analytics_month"
         class="export-select"
-        style="background: #fff; border: 1.5px solid #ddd"
+        style="background: #fff; border: 1.5px solid #ddd; color: #1a2033"
       >
         {% for m in months_list %}
         <option
@@ -450,7 +450,7 @@
       </select>
       <button type="submit" class="btn btn-primary">Show Analytics</button>
     </form>
-  </h2>
+  </div>
 
   <div
     style="
@@ -498,12 +498,7 @@
           >
         </div>
         <div style="position: relative; height: 200px">
-          <canvas
-            id="dayNightChart"
-            role="img"
-            aria-label="Donut chart day vs night bookings"
-            >Day vs Night bookings</canvas
-          >
+          <canvas id="dayNightChart">Day vs Night bookings</canvas>
         </div>
       </div>
     </div>
@@ -513,12 +508,7 @@
       <div class="card-header"><h3>📈 Daily Booking Trend</h3></div>
       <div class="card-body">
         <div style="position: relative; height: 200px">
-          <canvas
-            id="trendChart"
-            role="img"
-            aria-label="Line chart daily booking trend"
-            >Daily trend</canvas
-          >
+          <canvas id="trendChart">Daily trend</canvas>
         </div>
       </div>
     </div>
@@ -562,12 +552,7 @@
         >
       </div>
       <div style="position: relative; height: 220px">
-        <canvas
-          id="peakChart"
-          role="img"
-          aria-label="Bar chart 24 hour peak slots"
-          >24 hour peak data</canvas
-        >
+        <canvas id="peakChart">24 hour peak data</canvas>
       </div>
     </div>
   </div>
@@ -577,28 +562,18 @@
 <script>
   var analyticsData = {{ bookings_json|safe }};
 
-  // Peak Hours
   var allSlotKeys = ['00:00-01:00','01:00-02:00','02:00-03:00','03:00-04:00','04:00-05:00','05:00-06:00','06:00-07:00','07:00-08:00','08:00-09:00','09:00-10:00','10:00-11:00','11:00-12:00','12:00-13:00','13:00-14:00','14:00-15:00','15:00-16:00','16:00-17:00','17:00-18:00','18:00-19:00','19:00-20:00','20:00-21:00','21:00-22:00','22:00-23:00','23:00-00:00'];
   var labels24 = ['12AM','1AM','2AM','3AM','4AM','5AM','6AM','7AM','8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM','6PM','7PM','8PM','9PM','10PM','11PM'];
   var nightSlots = ['18:00-19:00','19:00-20:00','20:00-21:00','21:00-22:00','22:00-23:00','23:00-00:00'];
 
   var slotCounts = {};
-  analyticsData.forEach(function(b){
-    slotCounts[b.slot] = (slotCounts[b.slot] || 0) + 1;
-  });
+  analyticsData.forEach(function(b){ slotCounts[b.slot] = (slotCounts[b.slot] || 0) + 1; });
   var slotValues = allSlotKeys.map(function(k){ return slotCounts[k] || 0; });
   var slotColors = allSlotKeys.map(function(k){ return nightSlots.indexOf(k) !== -1 ? '#1a2033' : '#1a7a3a'; });
 
   new Chart(document.getElementById('peakChart'), {
     type: 'bar',
-    data: {
-      labels: labels24,
-      datasets: [{
-        data: slotValues,
-        backgroundColor: slotColors,
-        borderRadius: 4,
-      }]
-    },
+    data: { labels: labels24, datasets: [{ data: slotValues, backgroundColor: slotColors, borderRadius: 4 }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
@@ -609,49 +584,23 @@
     }
   });
 
-  // Day vs Night
   var dayCount = analyticsData.filter(function(b){ return b.time_period === 'Day'; }).length;
   var nightCount = analyticsData.filter(function(b){ return b.time_period === 'Night'; }).length;
 
   new Chart(document.getElementById('dayNightChart'), {
     type: 'doughnut',
-    data: {
-      labels: ['Day', 'Night'],
-      datasets: [{
-        data: [dayCount, nightCount],
-        backgroundColor: ['#25a34f', '#1a2033'],
-        borderWidth: 0,
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      cutout: '65%'
-    }
+    data: { labels: ['Day','Night'], datasets: [{ data: [dayCount, nightCount], backgroundColor: ['#25a34f','#1a2033'], borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '65%' }
   });
 
-  // Daily Trend
   var dateCounts = {};
-  analyticsData.forEach(function(b){
-    dateCounts[b.booking_date] = (dateCounts[b.booking_date] || 0) + 1;
-  });
+  analyticsData.forEach(function(b){ dateCounts[b.booking_date] = (dateCounts[b.booking_date] || 0) + 1; });
   var dateLabels = Object.keys(dateCounts).sort();
   var dateValues = dateLabels.map(function(d){ return dateCounts[d]; });
 
   new Chart(document.getElementById('trendChart'), {
     type: 'line',
-    data: {
-      labels: dateLabels,
-      datasets: [{
-        data: dateValues,
-        borderColor: '#1a7a3a',
-        backgroundColor: 'rgba(26,122,58,0.08)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 4,
-        pointBackgroundColor: '#1a7a3a',
-      }]
-    },
+    data: { labels: dateLabels, datasets: [{ data: dateValues, borderColor: '#1a7a3a', backgroundColor: 'rgba(26,122,58,0.08)', fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#1a7a3a' }] },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
